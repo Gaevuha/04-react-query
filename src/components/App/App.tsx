@@ -61,8 +61,7 @@ export default function App() {
       <Toaster position="top-center" />
 
       {isLoading && <Loader />}
-      {isError || !navigator.onLine ? (<ErrorMessage/>) : null}
-
+      {isError && <ErrorMessage />}
 
       {isSuccess && data.results.length > 0 && (
         <>
