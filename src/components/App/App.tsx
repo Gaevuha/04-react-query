@@ -8,7 +8,7 @@ import MovieGrid from '../MovieGrid/MovieGrid';
 import ErrorMessage from '../ErrorMessage/ErrorMessage';
 import Loader from '../Loader/Loader';
 import MovieModal from '../MovieModal/MovieModal';
-
+import type { FetchMoviesResp } from '../../types/movie';
 import { fetchMovies } from '../../services/movieService';
 import type { Movie } from '../../types/movie';
 
@@ -24,12 +24,15 @@ export default function App() {
     isLoading,
     isError,
     isSuccess,
-  } = useQuery({
+  } = useQuery<FetchMoviesResp, Error, FetchMoviesResp, [string, string, number]>({
     queryKey: ['movies', searchQuery, page],
     queryFn: () => fetchMovies(searchQuery, page),
     enabled: !!searchQuery.trim(),
     retry: false,
     staleTime: 1000 * 60 * 5,
+    keepPreviousData: true,
+    placeholderData: (previousData: FetchMoviesResp | undefined) => previousData,
+
   });
 
   const handleSearch = (query: string) => {
