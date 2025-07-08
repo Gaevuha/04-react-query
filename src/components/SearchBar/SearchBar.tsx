@@ -1,6 +1,6 @@
 import styles from './SearchBar.module.css';
 import toast, { Toaster } from 'react-hot-toast';
-import React, { FormEvent } from 'react';
+import type { FormEvent } from 'react';
 
 interface SearchBarProps {
   onSubmit: (query: string) => void;
