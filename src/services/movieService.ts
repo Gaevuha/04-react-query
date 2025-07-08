@@ -17,8 +17,7 @@ export const fetchMovies = async (
   query: string,
   page: number = 1,
 ): Promise<FetchMoviesResp> => {
-  try {
-    const response = await axios.get<FetchMoviesResp>('/search/movie', {
+  const response = await axios.get<FetchMoviesResp>('/search/movie', {
     params: {
       query,
       page,
@@ -29,12 +28,7 @@ export const fetchMovies = async (
     },
   });
 
-    return response.data;
-  } catch (error) {
-    console.error('fetchMovies error:', error);
-    throw error;
-  }
-
+  return response.data;
 };
 
 
