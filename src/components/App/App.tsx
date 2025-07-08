@@ -1,5 +1,4 @@
-// src/components/App/App.tsx
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import styles from './App.module.css';
 import SearchBar from '../SearchBar/SearchBar';
 import type { Movie } from '../../types/movie';
@@ -20,7 +19,8 @@ export default function App() {
   const [isLoading, setIsLoading] = useState(false);
   const [hasError, setHasError] = useState(false);
 
-  useEffect(() => {
+  // Обгортка fetchMovies у useCallback, щоб можна було викликати повторно
+  const fetchData = useCallback(() => {
     if (!searchQuery.trim()) return;
 
     setIsLoading(true);
@@ -28,21 +28,45 @@ export default function App() {
 
     fetchMovies(searchQuery, page)
       .then(response => {
+        if (!response || !response.results) {
+          setHasError(true);
+          localStorage.clear();
+          return;
+        }
+
         if (response.results.length === 0) {
           toast.error('No movies found for your request.');
-          setData(null);
-        } else {
-          setData(response);
         }
+
+        setData(response);
       })
       .catch(() => {
         setHasError(true);
-        setData(null);
+        localStorage.clear();
       })
       .finally(() => {
         setIsLoading(false);
       });
   }, [searchQuery, page]);
+
+  // Основний useEffect для пошуку
+  useEffect(() => {
+    fetchData();
+  }, [fetchData]);
+
+  // Додаємо слухача події online для автоматичного повторного запиту при появі інтернету
+  useEffect(() => {
+    function handleOnline() {
+      if (hasError && searchQuery.trim()) {
+        fetchData(); // При появі інтернету — робимо повторний пошук
+      }
+    }
+
+    window.addEventListener('online', handleOnline);
+    return () => {
+      window.removeEventListener('online', handleOnline);
+    };
+  }, [hasError, searchQuery, fetchData]);
 
   const handleSearch = (query: string) => {
     if (!query.trim()) {
@@ -51,6 +75,7 @@ export default function App() {
     }
     setSearchQuery(query);
     setPage(1);
+    setHasError(false); // очищаємо помилку при новому запиті
   };
 
   const handlePageChange = ({ selected }: { selected: number }) => {
@@ -68,10 +93,8 @@ export default function App() {
 
       {isLoading && <Loader />}
 
-      {/* Якщо сталася HTTP‑помилка — показуємо ErrorMessage */}
       {hasError && <ErrorMessage />}
 
-      {/* Інакше, якщо є дані — показуємо пагінацію + галерею */}
       {!isLoading && !hasError && data && data.results.length > 0 && (
         <>
           {data.total_pages > 1 && (
