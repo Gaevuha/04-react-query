@@ -1,15 +1,14 @@
 import { useState, useEffect } from 'react';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, keepPreviousData } from '@tanstack/react-query';
 import toast, { Toaster } from 'react-hot-toast';
 import ReactPaginate from 'react-paginate';
-
 import SearchBar from '../SearchBar/SearchBar';
 import MovieGrid from '../MovieGrid/MovieGrid';
 import ErrorMessage from '../ErrorMessage/ErrorMessage';
 import Loader from '../Loader/Loader';
 import MovieModal from '../MovieModal/MovieModal';
 import { fetchMovies } from '../../services/movieService';
-import type { FetchMoviesResp } from '../../types/movie';
+import type { FetchMoviesResp } from '../../services/movieService';
 import type { Movie } from '../../types/movie';
 
 import styles from './App.module.css';
@@ -19,21 +18,19 @@ export default function App() {
   const [searchQuery, setSearchQuery] = useState('');
   const [page, setPage] = useState(1);
 
-  const {
-    data,
-    isLoading,
-    isError,
-    isSuccess,
-  } = useQuery<FetchMoviesResp, Error>({
-    queryKey: ['movies', searchQuery, page],
-    queryFn: () => fetchMovies(searchQuery, page),
-    enabled: !!searchQuery.trim(),
-    retry: false,
-    staleTime: 1000 * 60 * 5,
-    ...( { keepPreviousData: true } as any ),
-    // keepPreviousData: true,
-    placeholderData: (previousData: FetchMoviesResp | undefined) => previousData,
-  });
+ const {
+  data,
+  isLoading,
+  isError,
+  isSuccess,
+} = useQuery<FetchMoviesResp, Error>({
+  queryKey: ['movies', searchQuery, page],
+  queryFn: () => fetchMovies(searchQuery, page),
+  enabled: !!searchQuery.trim(),
+  retry: false,
+  staleTime: 1000 * 60 * 5,
+  placeholderData: keepPreviousData,
+});
 
 
   const handleSearch = (query: string) => {
